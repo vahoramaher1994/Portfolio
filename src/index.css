@@ -1,3 +1,23 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-bg: oklch(92.2% 0.005 325.62);
+
+  --color-text-primary: oklch(14% 0.005 325);
+  --color-text-secondary: oklch(30% 0.008 325);
+  --color-text-muted: oklch(42% 0.008 325);
+
+  --color-surface-1: oklch(96% 0.004 325);
+  --color-soft: oklch(75% 0.008 325);
+
+  --color-accent: oklch(70% 0.15 330);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+}
