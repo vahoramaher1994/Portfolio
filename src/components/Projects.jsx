@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { motion } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
 import ProjectCard from "./ProjectCard"
 
 const projects = [
@@ -7,41 +7,57 @@ const projects = [
     number: "01",
     title: "Personal Timeline",
     category: "Full Stack",
+    description: "A full-stack application for creating and managing personal timeline entries.",
+    technologies: ["React", "TypeScript", ".NET 8", "SQLite"],
   },
   {
     number: "02",
     title: "Green Steps",
     category: "Full Stack",
+    description: "A carbon footprint tracking application for logging activities and understanding environmental impact.",
+    technologies: ["React", "Java", "Spring Boot", "PostgreSQL"],
   },
   {
     number: "03",
     title: "Project 03",
     category: "Frontend",
+    description: "A full-stack application for creating and managing personal timeline entries.",
+    technologies: ["React", "TypeScript", ".NET 8", "SQLite"],
   },
   {
     number: "04",
     title: "Project 04",
     category: "Backend",
+    description: "A full-stack application for creating and managing personal timeline entries.",
+    technologies: ["React", "TypeScript", ".NET 8", "SQLite"],
   },
   {
     number: "05",
     title: "Project 05",
     category: "Cloud",
+    description: "A full-stack application for creating and managing personal timeline entries.",
+    technologies: ["React", "TypeScript", ".NET 8", "SQLite"],
   },
   {
     number: "06",
     title: "Project 06",
     category: "Full Stack",
+    description: "A full-stack application for creating and managing personal timeline entries.",
+    technologies: ["React", "TypeScript", ".NET 8", "SQLite"],
   },
   {
     number: "07",
     title: "Project 07",
     category: "Software",
+    description: "A full-stack application for creating and managing personal timeline entries.",
+    technologies: ["React", "TypeScript", ".NET 8", "SQLite"],
   },
   {
     number: "08",
     title: "Project 08",
     category: "Engineering",
+    description: "A full-stack application for creating and managing personal timeline entries.",
+    technologies: ["React", "TypeScript", ".NET 8", "SQLite"],
   },
 ]
 
@@ -72,7 +88,7 @@ const cardVariants = {
 }
 
 export default function Projects() { 
-  const [activeProject, setActiveProject] = useState(null)
+  const [activeProject, setActiveProject] = useState(0)
 
 const [canScrollLeft, setCanScrollLeft] = useState(false)
 const [canScrollRight, setCanScrollRight] = useState(true)
@@ -108,6 +124,72 @@ const scrollLeft = () => {
       behavior: "smooth",
     })
   }
+  
+  //handle the partially visible project on selection
+  const handleProjectSelect = (index, element) => {
+  const container = scrollRef.current
+
+  if (!container || !element) return
+
+  const previousIndex = activeProject
+  const movingForward = index > previousIndex
+  const movingBackward = index < previousIndex
+
+  setActiveProject(index)
+
+  const containerRect = container.getBoundingClientRect()
+  const cardRect = element.getBoundingClientRect()
+
+  const cardPreview = 60
+
+  // Moving forward →
+  if (movingForward) {
+    const preview =
+      index < projects.length - 1 ? cardPreview : 0
+
+    const scrollAmount =
+      cardRect.right -
+      containerRect.right +
+      preview
+
+    container.scrollBy({
+      left: scrollAmount,
+      behavior: "smooth",
+    })
+  }
+
+  // Moving backward ←
+  if (movingBackward) {
+    const preview =
+      index > 0 ? cardPreview : 0
+
+    const scrollAmount =
+      cardRect.left -
+      containerRect.left -
+      preview
+
+    container.scrollBy({
+      left: scrollAmount,
+      behavior: "smooth",
+    })
+  }
+
+
+  // Moving backward ←
+  // Make selected card fully visible
+  // while leaving a preview of the previous card
+  if (movingBackward) {
+    const scrollAmount =
+      cardRect.left -
+      containerRect.left -
+      cardPreview
+
+    container.scrollBy({
+      left: scrollAmount,
+      behavior: "smooth",
+    })
+  }
+}
 
   useEffect(() => {
   checkScrollPosition()
@@ -143,7 +225,7 @@ const scrollLeft = () => {
       </div>
 
       {/* Project selector */}
-<div className="relative mt-14 md:mt-20">
+      <div className="group relative mt-14 md:mt-20">
 
   {/* Horizontally scrollable cards */}
   <motion.div
@@ -177,12 +259,15 @@ const scrollLeft = () => {
         <ProjectCard
           {...project}
           isActive={activeProject === index}
-          onClick={() => setActiveProject(index)}
+          onClick={(event) =>handleProjectSelect(index, event.currentTarget)
+}
+
         />
       </motion.div>
     ))}
   </motion.div>
-    {/* Left arrow */}
+
+   {/* Left arrow */}
 {canScrollLeft && (
   <button
     onClick={scrollLeft}
@@ -199,9 +284,17 @@ const scrollLeft = () => {
       border border-soft
       text-text-primary
       text-xl
-      flex
+
+      hidden
+      sm:flex
       items-center
       justify-center
+
+      opacity-0
+      pointer-events-none
+      group-hover:opacity-100
+      group-hover:pointer-events-auto
+
       cursor-pointer
       z-10
       transition-all
@@ -214,8 +307,8 @@ const scrollLeft = () => {
   </button>
 )}
 
-  {/* Right arrow */}
-  {canScrollRight && (
+{/* Right arrow */}
+{canScrollRight && (
   <button
     onClick={scrollRight}
     aria-label="Scroll projects right"
@@ -231,9 +324,17 @@ const scrollLeft = () => {
       border border-soft
       text-text-primary
       text-xl
-      flex
+
+      hidden
+      sm:flex
       items-center
       justify-center
+
+      opacity-0
+      pointer-events-none
+      group-hover:opacity-100
+      group-hover:pointer-events-auto
+
       cursor-pointer
       z-10
       transition-all
@@ -245,6 +346,107 @@ const scrollLeft = () => {
     →
   </button>
 )}
+
+</div>
+
+
+{/* Project details */}
+<div className="max-w-[1200px] mx-auto px-5 sm:px-6 md:px-8 pt-8 md:pt-12">
+
+  {/* Stable outer detail panel */}
+  <div
+    className="
+      border-t
+      border-soft
+      py-10 md:py-14
+    "
+  >
+
+    {/* Only the project content changes */}
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={projects[activeProject].number}
+
+        initial={{
+          opacity: 0,
+          y: 20,
+        }}
+
+        animate={{
+          opacity: 1,
+          y: 0,
+        }}
+
+        exit={{
+          opacity: 0,
+          y: -20,
+        }}
+
+        transition={{
+          duration: 0.4,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+
+        className="
+          grid
+          grid-cols-1
+          md:grid-cols-2
+          gap-10
+          md:gap-16
+        "
+      >
+
+        {/* Left side */}
+        <div>
+
+          <p className="text-text-muted text-xs tracking-[0.2em] uppercase">
+            {projects[activeProject].number}
+            {" · "}
+            {projects[activeProject].category}
+          </p>
+
+          <h3 className="mt-4 text-[32px] sm:text-[40px] md:text-[48px] font-light tracking-tight">
+            {projects[activeProject].title}
+          </h3>
+
+        </div>
+
+
+        {/* Right side */}
+        <div>
+
+          <p className="text-text-secondary text-[16px] md:text-[18px] leading-relaxed">
+            {projects[activeProject].description}
+          </p>
+
+          {/* Technologies */}
+          <div className="mt-7 flex flex-wrap gap-2">
+
+            {projects[activeProject].technologies.map((technology) => (
+              <span
+                key={technology}
+                className="
+                  px-4
+                  py-2
+                  rounded-full
+                  border
+                  border-soft
+                  text-text-muted
+                  text-sm
+                "
+              >
+                {technology}
+              </span>
+            ))}
+
+          </div>
+
+        </div>
+
+      </motion.div>
+    </AnimatePresence>
+
+  </div>
 
 </div>
     </section>
